@@ -23,3 +23,11 @@ We tested mollex only on snail-like shapes.
   
   
 ![](https://img1.picload.org/image/dogggpcw/image18.png)  
+
+## Install instruction
+
+```sh
+meson --buildtype=debug build
+ninja -C build
+./build/mollex
+```
