@@ -216,7 +216,7 @@ void moldec::write_images(std::ostream& newMetaFile, const std::vector<std::stri
 	int i = 0;
     for (auto moll: molluscoids) {
         const std::string fname { imageName + "_" + std::to_string(i) + ".png" };
-        cv::imwrite("data/" + fname, moll.image);
+        cv::imwrite("out/" + fname, moll.image);
         newMetaFile << fname << ";";
         newMetaFile << "#" << moll.get_color() << ";";
         newMetaFile << moll.angle() << ";";

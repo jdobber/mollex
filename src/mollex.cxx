@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-	std::ofstream newMetaFile("data/meta_file.csv");
+	std::ofstream newMetaFile("out/meta_file.csv");
     if (!newMetaFile.is_open()) {
         std::cerr << "Can not create data/meta_file.csv" << std::endl;
         return EXIT_FAILURE;
