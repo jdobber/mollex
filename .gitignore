@@ -33,3 +33,7 @@
 
 # Custom
 build
+data
+images
+out
+*.csv
