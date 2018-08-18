@@ -5,6 +5,7 @@
 #include <fstream>
 
 #include <opencv/cv.h>
+#include <QJsonObject>
 
 #include "molluscoid.h"
 #include "common.h"
@@ -28,6 +29,6 @@ public:
 
 	std::vector<contour> get_contours() const;
 
-	void write_images(std::ostream& os, const std::vector<std::string>& data, const std::string& imageName) const;
+	void write_images(QJsonObject &meta, const std::vector<std::string>& data, const std::string& imageName) const;
 };
 

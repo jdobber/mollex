@@ -18,9 +18,15 @@ sources = ['src/mollex.cxx',
 
 # dependencies
 inc_dirs = []
+
+# Qt5
+qt5 = import('qt5')
+qt5_dep = dependency('qt5', modules: ['Core'], required : true)
+
 deps = [	    
     dependency('threads'),
-    dependency('opencv', version : ['>= 3.4.0'], required : true)
+    dependency('opencv', version : ['>= 3.4.0'], required : true),
+	qt5_dep
 ]
 
 # openmp

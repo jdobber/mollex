@@ -13,15 +13,19 @@
 #include "detect.h"
 #include <opencv/cv.hpp>
 
-void write_image(const std::string& imageName, const std::vector<std::string>& data, std::ostream& newMetaFile) {
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonDocument>
+
+void write_image(const std::string& imageName, const std::vector<std::string>& data, QJsonObject& meta) {
     const cv::Mat img = cv::imread("images/" + imageName + ".jpg");
     if (!img.data) return;
 	const moldec md { img };
 
-	md.write_images(newMetaFile, data, imageName);
+	md.write_images(meta, data, imageName);
 }
 
-void process_line(const std::string& line, std::ostream& newMetaFile) {
+void process_line(const std::string& line, QJsonObject& meta) {
 	std::vector<std::string> data;
 	std::stringstream ss(line);
 	std::string entry;
@@ -37,14 +41,17 @@ void process_line(const std::string& line, std::ostream& newMetaFile) {
 			auto ss1 = std::stringstream(entry);
 			std::string imageName;
 			std::getline(ss1, imageName, '.');
-			write_image(imageName, data, newMetaFile);
+			write_image(imageName, data, meta);
 		}
 	}
+	
 }
 
 int main(int argc, char **argv) {
-	/*cv::namedWindow("in", cv::WINDOW_NORMAL | cv::WINDOW_GUI_NORMAL);
-	cv::resizeWindow("in", 640, 480);/**/
+	/*
+		cv::namedWindow("in", cv::WINDOW_NORMAL | cv::WINDOW_GUI_NORMAL);
+		cv::resizeWindow("in", 640, 480);
+	*/
 
 	std::ifstream oldMetaFile("species_list.csv");	
 	std::string line;
@@ -61,7 +68,6 @@ int main(int argc, char **argv) {
 
     newMetaFile << "Image;Color;Rotation;Ratio;OriginalImage;InventarNr;Class;Family;Genus;Species;Scientific Name;Fundort;Datum;Gebiet;Provinz;Land;Teilkontinent;Kontinent" << std::endl;
 
-	int lineNr = 1;
 	std::getline(oldMetaFile, line);
 
 	std::vector<std::string> lines;
@@ -69,34 +75,28 @@ int main(int argc, char **argv) {
 		lines.emplace_back(line);
 	}
 
-    std::atomic<int> lines_processed { 0 };
+    long unsigned int lines_processed = 1;
 
-    const auto print_progress = [&] {
-        while (lines_processed != lines.size()) {
-            std::cout
-                << lines_processed << "/" << lines.size() 
-                << " " << lines_processed/(double)lines.size() * 100 << "%"
-                << std::endl;
-            std::this_thread::sleep_for(std::chrono::seconds{ 2 });
-        }
-    };
-    std::thread progress_thread{ print_progress };
-
-    std::mutex mtx;
-	#pragma omp parallel for
-    for (int i = 0; i < lines.size(); i++) {   
-        if (0) {
-            std::lock_guard<std::mutex> guard{ mtx };
-            std::cout << "line " << lineNr << std::endl;
-            lineNr++;
-        }
-        process_line(lines[i], newMetaFile);
-        lines_processed += 1;
+	QJsonArray jsonMetaArray;
+    
+	//#pragma omp parallel for
+    //for (long unsigned int i = 0; i < lines.size(); i++) {   
+	
+	//#pragma omp parallel for
+	for (long unsigned int i = 0; i < 5; i++) {   
+		QJsonObject jsonMetaObject;	    
+        process_line(lines[i], jsonMetaObject);
+		jsonMetaArray.push_back(jsonMetaObject);
+		std::cout << lines_processed << "/" << lines.size() << std::endl;
+        lines_processed += 1;		
 	}
 
-    progress_thread.join();
+    //progress_thread.join();
 	oldMetaFile.close();
 	newMetaFile.close();
+
+	QJsonDocument doc(jsonMetaArray);
+    std::cerr << doc.toJson().toStdString();
 
     return EXIT_SUCCESS;
 }

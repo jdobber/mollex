@@ -7,6 +7,9 @@
 #include <fstream>
 
 #include <opencv/cv.hpp>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QString>
 
 #include "tunables.h"
 
@@ -212,24 +215,43 @@ moldec::moldec(const cv::Mat& img) :
 }
 moldec::~moldec() {}
 
-void moldec::write_images(std::ostream& newMetaFile, const std::vector<std::string>& data, const std::string& imageName) const {
+void moldec::write_images(QJsonObject &meta, const std::vector<std::string>& data, const std::string& imageName) const {
 	int i = 0;
+
+    meta["imageName"] = QString::fromStdString(imageName+".jpg");
+    QJsonArray metaMolls;
+
     for (auto moll: molluscoids) {
         const std::string fname { imageName + "_" + std::to_string(i) + ".png" };
         cv::imwrite("out/" + fname, moll.image);
-        newMetaFile << fname << ";";
-        newMetaFile << "#" << moll.get_color() << ";";
-        newMetaFile << moll.angle() << ";";
-        newMetaFile << moll.ratio() << ";";
-        newMetaFile << imageName << ".jpg";
+        
+        QJsonObject m;
 
-        for (auto d : data) {
-            newMetaFile << ";" << d;
-        }
-        newMetaFile << std::endl;
+        m["name"] = QString::fromStdString(fname);
+        //newMetaFile << fname << ";";
 
+        m["color"] = QString::fromStdString("#"+moll.get_color());
+        //newMetaFile << "#" << moll.get_color() << ";";
+
+        m["angle"] = moll.angle();
+        //newMetaFile << moll.angle() << ";";
+
+        m["ratio"] = moll.ratio();
+        //newMetaFile << moll.ratio() << ";";
+
+        m["imageName"] = QString::fromStdString(imageName+".jpg");
+        //newMetaFile << imageName << ".jpg";
+
+        //for (auto d : data) {
+            //newMetaFile << ";" << d;            
+        //}
+        //newMetaFile << std::endl;
+
+        metaMolls.push_back(m);
         i++;
-    }	
+    }
+    meta["molluscoids"] = metaMolls;
+
 }
 
 std::vector<contour> moldec::get_contours() const {
