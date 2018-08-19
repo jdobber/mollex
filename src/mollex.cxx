@@ -16,6 +16,9 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QCommandLineParser>
+
+#include "globals.h"
 
 void write_image(const std::string& imageName, const std::vector<std::string>& data, QJsonObject& meta) {
     const cv::Mat img = cv::imread("images/" + imageName + ".jpg");
@@ -47,11 +50,46 @@ void process_line(const std::string& line, QJsonObject& meta) {
 	
 }
 
-int main(int argc, char **argv) {
-	/*
-		cv::namedWindow("in", cv::WINDOW_NORMAL | cv::WINDOW_GUI_NORMAL);
-		cv::resizeWindow("in", 640, 480);
-	*/
+int main(int argc, char *argv[]) {
+
+	QCoreApplication app(argc, argv);
+    QCoreApplication::setApplicationName("mollex-ng");
+    QCoreApplication::setApplicationVersion("1.0");
+
+    // QCommandLineParser parser;
+    parser.setApplicationDescription("Test helper");
+    parser.addHelpOption();
+    parser.addVersionOption();
+    parser.addPositionalArgument("source", QCoreApplication::translate("main", "Source file to copy."));
+    parser.addPositionalArgument("destination", QCoreApplication::translate("main", "Destination directory."));
+
+    parser.addOptions({
+        // A boolean option with a single name (-p)
+        {{"p","progress"},
+            QCoreApplication::translate("main", "Show progress during copy")},
+        // A boolean option with multiple names (-f, --force)
+        {{"f", "force"},
+            QCoreApplication::translate("main", "Overwrite existing files.")},
+        // An option with a value
+        {{"t", "target-directory"},
+            QCoreApplication::translate("main", "Save images into into <directory>. Default is <out>."),
+            QCoreApplication::translate("main", "directory"),
+			QCoreApplication::translate("main", "out")},
+    });
+
+    // Process the actual command line arguments given by the user
+    parser.process(app);
+
+    const QStringList args = parser.positionalArguments();
+    // source is args.at(0), destination is args.at(1)
+
+    bool showProgress = parser.isSet("progress");
+    //bool force = parser.isSet(forceOption);
+    //QString targetDir = parser.value(targetDirectoryOption);
+
+	std::cout << "Save images to: " << parser.value("target-directory").toStdString() << std::endl;
+
+	// ###################################
 
 	std::ifstream oldMetaFile("species_list.csv");	
 	std::string line;
@@ -83,7 +121,7 @@ int main(int argc, char **argv) {
     //for (long unsigned int i = 0; i < lines.size(); i++) {   
 	
 	//#pragma omp parallel for
-	for (long unsigned int i = 0; i < 5; i++) {   
+	for (long unsigned int i = 0; i < 2; i++) {   
 		QJsonObject jsonMetaObject;	    
         process_line(lines[i], jsonMetaObject);
 		jsonMetaArray.push_back(jsonMetaObject);

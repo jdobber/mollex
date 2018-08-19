@@ -14,7 +14,9 @@ cc = meson.get_compiler('cpp')
 
 sources = ['src/mollex.cxx',
 	'src/detect.cxx',
-	'src/molluscoid.cxx']
+	'src/molluscoid.cxx',
+	'src/globals.cxx',
+	]
 
 # dependencies
 inc_dirs = []

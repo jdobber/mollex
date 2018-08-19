@@ -178,7 +178,7 @@ void moldec::extract_molluscoids() {
 		cv::merge(channels, outImage);
 		auto segment = cv::Mat(outImage, boundingBox).clone();
 		const auto scale_factor = (boundingBox.size().width >= downsampling_width) ? downsampling_width/(double)boundingBox.size().width : 1.0;
-		cv::resize(segment, segment, cv::Size{}, scale_factor, scale_factor, cv::INTER_AREA);
+		//cv::resize(segment, segment, cv::Size{}, scale_factor, scale_factor, cv::INTER_AREA);
 		molluscoids.emplace_back(contours[i], segment);
 	}
 }
@@ -242,6 +242,14 @@ void moldec::write_images(QJsonObject &meta, const std::vector<std::string>& dat
         m["imageName"] = QString::fromStdString(imageName+".jpg");
         //newMetaFile << imageName << ".jpg";
 
+        auto rect = moll.bounding_rect.boundingRect();
+        QJsonObject metaRect;
+        metaRect["x"] = rect.x;
+        metaRect["y"] = rect.y;
+        metaRect["width"] = rect.width;
+        metaRect["height"] = rect.height;
+        m["rect"] = metaRect;
+        
         //for (auto d : data) {
             //newMetaFile << ";" << d;            
         //}
