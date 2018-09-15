@@ -10,6 +10,8 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QString>
+#include <QFileInfo>
+#include <QtDebug>
 
 #include "tunables.h"
 
@@ -103,7 +105,7 @@ void moldec::threshold(const cv::Mat& img) {
 #ifdef THRESHOLD
     const double threshold = determine_threshold(img);
 #ifdef DEBUG
-    std::cout << "threshold: " << threshold << std::endl;
+    qDebug() << "threshold: " << threshold;
 #endif
     cv::threshold(tmp, tmp, threshold, 1.0, cv::THRESH_TOZERO);
 #endif
@@ -215,45 +217,33 @@ moldec::moldec(const cv::Mat& img) :
 }
 moldec::~moldec() {}
 
-void moldec::write_images(QJsonObject &meta, const std::vector<std::string>& data, const std::string& imageName) const {
+void moldec::write_images(QJsonObject &meta, const std::string& imageName) const {
 	int i = 0;
 
-    meta["imageName"] = QString::fromStdString(imageName+".jpg");
+    QFileInfo fi(QString::fromStdString(imageName));
+    QString basename = fi.baseName();
+
+    meta["imageName"] = QString::fromStdString(imageName);
     QJsonArray metaMolls;
 
     for (auto moll: molluscoids) {
-        const std::string fname { imageName + "_" + std::to_string(i) + ".png" };
+        const std::string fname { basename.toStdString() + "_" + std::to_string(i) + ".png" };
         cv::imwrite("out/" + fname, moll.image);
         
         QJsonObject m;
 
-        m["name"] = QString::fromStdString(fname);
-        //newMetaFile << fname << ";";
-
+        m["imageName"] = QString::fromStdString(fname);
         m["color"] = QString::fromStdString("#"+moll.get_color());
-        //newMetaFile << "#" << moll.get_color() << ";";
-
         m["angle"] = moll.angle();
-        //newMetaFile << moll.angle() << ";";
-
         m["ratio"] = moll.ratio();
-        //newMetaFile << moll.ratio() << ";";
-
-        m["imageName"] = QString::fromStdString(imageName+".jpg");
-        //newMetaFile << imageName << ".jpg";
-
+                
         auto rect = moll.bounding_rect.boundingRect();
         QJsonObject metaRect;
         metaRect["x"] = rect.x;
         metaRect["y"] = rect.y;
         metaRect["width"] = rect.width;
         metaRect["height"] = rect.height;
-        m["rect"] = metaRect;
-        
-        //for (auto d : data) {
-            //newMetaFile << ";" << d;            
-        //}
-        //newMetaFile << std::endl;
+        m["bbox"] = metaRect;
 
         metaMolls.push_back(m);
         i++;
