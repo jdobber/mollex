@@ -11,12 +11,14 @@
 #include <QJsonArray>
 #include <QString>
 #include <QFileInfo>
+#include <QDir>
 #include <QtDebug>
 
 #include "tunables.h"
 
 #include "molluscoid.h"
 #include "detect.h"
+#include "globals.h"
 
 const int32_t downsampling_width = 256;
 
@@ -37,9 +39,9 @@ bool moldec::decide(const contour& cont) {
     if (area < MINIMUM_AREA) {
         return true;
     }
-#ifdef DEBUG
-    std::cout << area << " b:" << brect_area << " " << quotient << std::endl;
-#endif
+
+    if (parser.isSet("verbose"))
+        std::cerr << area << " b:" << brect_area << " " << quotient << std::endl;
 
     if (quotient < BOXINESS_CUTOFF_LO ||
         quotient > BOXINESS_CUTOFF_HI) {
@@ -49,10 +51,11 @@ bool moldec::decide(const contour& cont) {
         contour convex;
         cv::convexHull(cont, convex);
         const double convex_area = cv::contourArea(convex);
-#ifdef DEBUG
-        std::cout << "convex: " << convex_area << " q:"
-                  << convex_area/area << std::endl;
-#endif
+    
+        if (parser.isSet("verbose"))
+            std::cerr << "convex: " << convex_area << " q:"
+                      << convex_area/area << std::endl;
+
         if (convex_area/area > CONTOUR_SMOOTHNESS_CUTOFF) {
             return true;
         }
@@ -68,10 +71,10 @@ void moldec::find_contours() {
         contours.end()
     );
 
-#ifdef DEBUG
-    std::cout << "Found " << contours.size()
+    if (parser.isSet("verbose"))
+        std::cerr << "Found " << contours.size()
               << " potential molluscs" << std::endl;
-#endif
+
 }
 
 double moldec::determine_threshold(const cv::Mat& img) const {
@@ -104,9 +107,8 @@ void moldec::threshold(const cv::Mat& img) {
 
 #ifdef THRESHOLD
     const double threshold = determine_threshold(img);
-#ifdef DEBUG
-    qDebug() << "threshold: " << threshold;
-#endif
+    if (parser.isSet("verbose"))
+        std::cerr << "threshold: " << threshold;
     cv::threshold(tmp, tmp, threshold, 1.0, cv::THRESH_TOZERO);
 #endif
     tmp.convertTo(out, CV_8UC1, 255.0);
@@ -217,22 +219,25 @@ moldec::moldec(const cv::Mat& img) :
 }
 moldec::~moldec() {}
 
-void moldec::write_images(QJsonObject &meta, const std::string& imageName) const {
+void moldec::write_images(QJsonObject &meta, const std::string& imageName, const std::string& dest) const {
 	int i = 0;
 
     QFileInfo fi(QString::fromStdString(imageName));
     QString basename = fi.baseName();
 
-    meta["imageName"] = QString::fromStdString(imageName);
+    QDir destDir(QString::fromStdString(dest));
+
+    meta["imagePath"] = QString::fromStdString(imageName);
+    meta["basename"] = basename;
     QJsonArray metaMolls;
 
     for (auto moll: molluscoids) {
-        const std::string fname { basename.toStdString() + "_" + std::to_string(i) + ".png" };
-        cv::imwrite("out/" + fname, moll.image);
+        const QString fname = QString::fromStdString(basename.toStdString() + "_" + std::to_string(i) + ".png");        
+        cv::imwrite(destDir.absoluteFilePath(fname).toStdString(), moll.image);
         
         QJsonObject m;
 
-        m["imageName"] = QString::fromStdString(fname);
+        m["imageName"] = fname;
         m["color"] = QString::fromStdString("#"+moll.get_color());
         m["angle"] = moll.angle();
         m["ratio"] = moll.ratio();

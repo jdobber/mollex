@@ -29,6 +29,6 @@ public:
 
 	std::vector<contour> get_contours() const;
 
-	void write_images(QJsonObject &meta, const std::string& imageName) const;
+	void write_images(QJsonObject &meta, const std::string& imageName, const std::string& dest) const;
 };
 

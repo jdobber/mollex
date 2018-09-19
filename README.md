@@ -27,7 +27,21 @@ We tested mollex only on snail-like shapes.
 ## Install instruction
 
 ```sh
+mkdir build
 meson --buildtype=debug build
 ninja -C build
 ./build/mollex
+
+Usage: ./build/mollex [options] source destination
+Extract snails from images.
+
+Options:
+  -h, --help     Displays this help.
+  -v, --version  Displays version information.
+  --verbose      Show debug information.
+  --json         Write metadata as JSON to stdout.
+
+Arguments:
+  source         Source image to process.
+  destination    Destination directory.
 ```
