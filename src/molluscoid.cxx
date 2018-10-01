@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <fstream>
 
-#include <opencv/cv.hpp>
+#include <opencv2/opencv.hpp>
 
 #include "tunables.h"
 

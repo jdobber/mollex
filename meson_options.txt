@@ -1,0 +1,2 @@
+option('opencv_includes', type : 'string', description : 'path to opencv includes')
+option('opencv_lib', type : 'string', description : 'path to opencv lib')
