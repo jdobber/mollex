@@ -66,5 +66,6 @@ if success
 			include_directories(
 				inc_dirs
 			),
-		cpp_args: cc_args )
+		cpp_args: cc_args,
+		install: true )
 endif
