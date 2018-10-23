@@ -29,7 +29,7 @@ qt5_dep = dependency('qt5', modules: ['Core'], required : true)
 deps += qt5_dep
 
 # OpenCV
-cv_dep = dependency('opencv', version : ['>= 3.4.0'], required : false)
+cv_dep = dependency('opencv', version : ['>= 3.2.0'], required : false)
 if cv_dep.found()
 	deps += cv_dep
 else
